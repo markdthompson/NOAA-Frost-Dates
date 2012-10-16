@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Farmsense Frost Dates API Demonstration</title>
+<meta name="description" content="Farmsense Frost Dates API Demonstration">
+<meta name="author" content="mark@farmsense.net">
+
+<script>
+// <![CDATA[
+
+var frostdatesObj = {
+
+	station : '',
+	lat : 0,
+	lon: 0,
+	
+	// uses jsonp to access farmsense api directly
+	getStations : function(){
+		// the url of the script where we send the asynchronous call
+		var url = "http://farmsense-prod.apigee.net/v1/frostdates/stations/?lat="+this.lat+"&lon="+this.lon+"&callback=frostdatesObj.parseStations";
+		// create a new script element
+		var script = document.createElement('script');
+		// set the src attribute to that url
+		script.setAttribute('src', url);
+		script.setAttribute('id', 'fs_getstation');
+		// insert the script in out page
+		document.getElementsByTagName('head')[0].appendChild(script);
+	},
+ 
+	parseStations : function(response){
+		var html = '';
+		for(var i = 0; i < response.length; i++){
+			html+='<input type="radio" name="station" value="'
+				+response[i].id+'" id="'+response[i].id
+				+'" onclick="frostdatesObj.changeMe('+response[i].id
+				+',\''+response[i].name+'\')"/><label for="'
+				+response[i].id+'">'+response[i].name
+				+' <span>'+Math.round(response[i].distance*100)/100
+				+' miles away</span></label><br />';
+		}
+	
+		document.getElementById('station_list').innerHTML = html;
+		document.getElementById(response[0].id).checked = 'checked';
+	
+		var labels = document.getElementsByTagName('LABEL');
+		for (var i = 0; i < labels.length; i++) {
+			if (labels[i].htmlFor == response[0].id.toString()) {
+				this.station = labels[i].childNodes[0].nodeValue;
+			}
+		}
+	
+		this.getProbabilities(response[0].id, 2);
+		this.getProbabilities(response[0].id, 1);
+	
+		try {// try to output this to the javascript console
+			//console.log(response);
+		} catch(an_exception) {// alert for the users that don't have a javascript console
+			//alert(response);
+		}
+	
+		element = document.getElementById("fs_getstation");
+		element.parentNode.removeChild(element);
+	},
+
+	// uses jsonp to access farmsense api directly
+	getProbabilities : function(id,season){
+		// the url of the script where we send the asynchronous call
+		var url = 'http://farmsense-prod.apigee.net/v1/frostdates/probabilities/?station='+id+'&season='+season+'&callback=frostdatesObj.parseProbabilities';
+		// create a new script element
+		var script = document.createElement('script');
+		// set the src attribute to that url
+		script.setAttribute('src', url);
+		script.setAttribute('id', 'fs_getprobabilities');
+		// insert the script in out page
+		document.getElementsByTagName('head')[0].appendChild(script);
+	},
+
+	parseProbabilities : function(response){
+
+		try {// try to output this to the javascript console
+			//console.log(response);
+		} catch(an_exception) {// alert for the users that don't have a javascript console
+			//alert(response);
+		}
+	
+		var html = '<table>';
+		html += '<tr><th>Threshold</th><th>90%</th><th>80%</th><th>70%</th><th>60%</th><th>50%</th><th>40%</th><th>30%</th><th>20%</th><th>10%</th></tr>';
+		for(var i = 0; i < response.length; i++){
+			html+= '<tr>';
+			html+= '<td>'+response[i].temperature_threshold+'&deg; F</td>';
+			html+= '<td>'+this.stringToDate(response[i].prob_90,response[i].season_id).toDateString()+'</td>';
+			html+= '<td>'+this.stringToDate(response[i].prob_80,response[i].season_id).toDateString()+'</td>';
+			html+= '<td>'+this.stringToDate(response[i].prob_70,response[i].season_id).toDateString()+'</td>';
+			html+= '<td>'+this.stringToDate(response[i].prob_60,response[i].season_id).toDateString()+'</td>';
+			html+= '<td>'+this.stringToDate(response[i].prob_50,response[i].season_id).toDateString()+'</td>';
+			html+= '<td>'+this.stringToDate(response[i].prob_40,response[i].season_id).toDateString()+'</td>';
+			html+= '<td>'+this.stringToDate(response[i].prob_30,response[i].season_id).toDateString()+'</td>';
+			html+= '<td>'+this.stringToDate(response[i].prob_20,response[i].season_id).toDateString()+'</td>';
+			html+= '<td>'+this.stringToDate(response[i].prob_10,response[i].season_id).toDateString()+'</td>';
+			html+= '</tr>';
+		}
+		html+= '</table>';
+			
+		if(response[0].season_id==1){
+			document.getElementById('spring_station_name').innerHTML = this.station + ': Spring Probability of Frost';
+			document.getElementById('spring_frost_data').innerHTML = html;
+		} else {
+			document.getElementById('fall_station_name').innerHTML = this.station + ': Fall Probability of Frost';
+			document.getElementById('fall_frost_data').innerHTML = html;
+		}
+	
+		try {// try to output this to the javascript console
+			//console.log(response);
+		} catch(an_exception) {// alert for the users that don't have a javascript console
+			//alert(response);
+		}
+	
+		element = document.getElementById("fs_getprobabilities");
+		element.parentNode.removeChild(element);
+	},
+
+
+	stringToDate : function(str,season){
+		var season = parseInt(season);
+		var today = new Date();
+		var mon = 0;
+		var day = 0;
+
+		if(str.slice(0,1) != '0'){
+			mon = parseInt(str.slice(0,2));
+		} else {
+			mon = parseInt(str.slice(1,2));
+		}
+	
+		if(str.slice(2,3) != '0'){
+			day = parseInt(str.slice(2,4));
+		} else {
+			day = parseInt(str.slice(3,4));
+		}
+	
+		if((season == 1 && today.getMonth() <= mon-1) || (season == 2 && today.getMonth() <= mon-1)){
+			return new Date(today.getFullYear(),mon-1,day);
+		} else if((season == 1 && today.getMonth() > mon-1) || (season == 2 && today.getMonth() > mon-1)){
+			return new Date(today.getFullYear()+1,mon-1,day);
+		} 
+	},
+
+	changeMe : function(id,name){
+		this.station = name;
+		this.getProbabilities(id,2);
+		this.getProbabilities(id,1);
+	}
+}
+
+var locationObj = {
+	// get lat lon from ip using host.info service - uses proxy for same domain 
+	getCoords : function() {
+		var url = 'http://www.farmsense.net/demos/proxies/proxy.php?proxy=iplatlon';
+		var method = 'GET';
+		var params = null;
+	
+		this.requestUrl(url, method, params, function(data) {
+			var d = eval('('+data+')');
+			
+			frostdatesObj.lat = d[0];
+			frostdatesObj.lon = d[1];
+	
+			frostdatesObj.getStations();
+		});
+	},
+	
+	requestUrl : function(url, method, params, callback) {
+		if(method == 'GET' || method == 'POST'){
+	
+			var request = window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest;
+
+			request.onreadystatechange = function() {
+				if (request.readyState == 4) {
+					request.onreadystatechange = this.doNothing;
+					callback(request.responseText, request.status);
+				}
+			};
+		
+			request.open(method, url, true);
+	
+			if(method == 'POST') {
+				//Send the proper header information along with the request
+				request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				request.setRequestHeader("Content-length", params.length);
+				request.setRequestHeader("Connection", "close");
+			} else if(method == 'GET'){
+				params = null;
+			}
+	
+			request.send(params);
+		
+		} else {
+			alert ("Method must be 'GET' or 'POST'");
+		}
+	},
+
+
+	doNothing : function() {}
+}
+
+var init = function(){
+	locationObj.getCoords();
+};
+
+window.onload = init;
+
+// ]]>
+</script>
+
+</head>
+<body>
+
+<header>
+<h1>FarmSense Frost Date Demo</h1>
+</header>
+<section>
+<h2 id="stations">Choose your nearest Station</h2>
+<div id="station_list"></div>
+</section>
+<section>
+<h2 id="fall_station_name"></h2>
+<div id="fall_frost_data"></div>
+</section>
+<section>
+<h2 id="spring_station_name"></h2>
+<div id="spring_frost_data"></div>
+</section>
+</body>
+</html>
