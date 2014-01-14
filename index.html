@@ -156,18 +156,12 @@ var frostdatesObj = {
 var locationObj = {
 	// get lat lon from ip using host.info service - uses proxy for same domain 
 	getCoords : function() {
-		var url = 'http://www.farmsense.net/demos/proxies/proxy.php?proxy=iplatlon';
-		var method = 'GET';
-		var params = null;
+		
+		// hardwired Brooklyn coords
+		frostdatesObj.lat = 40.6928;
+		frostdatesObj.lon = 73.9903;
 	
-		this.requestUrl(url, method, params, function(data) {
-			var d = eval('('+data+')');
-			
-			frostdatesObj.lat = d[0];
-			frostdatesObj.lon = d[1];
 	
-			frostdatesObj.getStations();
-		});
 	},
 	
 	requestUrl : function(url, method, params, callback) {
