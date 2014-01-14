@@ -20,6 +20,8 @@ var frostdatesObj = {
 		//this.lat = lat;
 		//this.lon = lon;
 		
+		console.log(lat + ", " + lon);
+		
 		// the url of the script where we send the asynchronous call
 		var url = "http://farmsense-prod.apigee.net/v1/frostdates/stations/?lat="+lat+"&lon="+lon+"&callback=frostdatesObj.parseStations";
 		// create a new script element
