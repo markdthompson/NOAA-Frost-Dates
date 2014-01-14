@@ -16,9 +16,9 @@ var frostdatesObj = {
 	lon: 0,
 	
 	// uses jsonp to access farmsense api directly
-	getStations : function(){
-		this.lat = locationObj.lat;
-		this.lon = locationObj.lon;
+	getStations : function(lat,lon){
+		this.lat = lat;
+		this.lon = lon;
 		
 		// the url of the script where we send the asynchronous call
 		var url = "http://farmsense-prod.apigee.net/v1/frostdates/stations/?lat="+this.lat+"&lon="+this.lon+"&callback=frostdatesObj.parseStations";
@@ -161,12 +161,7 @@ var locationObj = {
 	getCoords : function() {
 		
 		// hardwired Brooklyn coords
-		frostdatesObj.lat = 40.6928;
-		frostdatesObj.lon = 73.9903;
-		
-		console.log(frostdatesObj);
-		
-		frostdatesObj.getStations();
+		frostdatesObj.getStations(40.6928,73.9903);
 	
 	},
 	
