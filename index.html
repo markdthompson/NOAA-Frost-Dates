@@ -17,6 +17,9 @@ var frostdatesObj = {
 	
 	// uses jsonp to access farmsense api directly
 	getStations : function(){
+		this.lat = locationObj.lat;
+		this.lon = locationObj.lon;
+		
 		// the url of the script where we send the asynchronous call
 		var url = "http://farmsense-prod.apigee.net/v1/frostdates/stations/?lat="+this.lat+"&lon="+this.lon+"&callback=frostdatesObj.parseStations";
 		// create a new script element
